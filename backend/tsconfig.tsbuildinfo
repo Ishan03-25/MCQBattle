@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/middleware/usermiddleware.ts","./src/prisma/client.ts","./src/routes/gamerouter.ts","./src/routes/optionrouter.ts","./src/routes/playerrequest.ts","./src/routes/playerrouter.ts","./src/routes/questionrouter.ts","./src/routes/userrouter.ts","./src/utils/generateotp.ts","./src/utils/mailer.ts","./src/utils/pusher.ts"],"version":"5.8.3"}

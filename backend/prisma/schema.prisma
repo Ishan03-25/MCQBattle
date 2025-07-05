@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./prisma/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String           @id @default(uuid())
+  username  String           @unique
+  email     String           @unique
+  password  String
+
+  games     Game[]           @relation("CreatorGames") 
+  players   Player[] 
+  answers   UserAnswer[]
+  requests  PlayerRequest[]  // Relation to PlayerRequest
+}
+
+model Game {
+  id         String           @id @default(uuid())
+  game       String
+  userId     String
+  user       User             @relation("CreatorGames", fields: [userId], references: [id], onDelete: Cascade)
+
+  players    Player[]
+  questions  Question[]
+  answers    UserAnswer[]
+  requests   PlayerRequest[]  // Relation to PlayerRequest
+
+  createdAt  DateTime         @default(now())
+  status     GameStatus       @default(WAITING)
+}
+
+model Player {
+  id        String   @id @default(uuid())
+  userId    String
+  gameId    String
+  joinedAt  DateTime @default(now())
+  score     Int      @default(0)
+
+  user      User     @relation(fields: [userId], references: [id])
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameId])
+}
+
+model Question {
+  id          String      @id @default(uuid())
+  question    String
+  explanation String
+  gameId      String
+  game        Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  options     Option[]
+  answers     UserAnswer[]
+
+  createdAt   DateTime    @default(now())
+}
+
+model Option {
+  id         String      @id @default(uuid())
+  option     String
+  isCorrect  Boolean
+  questionId String
+  question   Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  answers    UserAnswer[]
+}
+
+model UserAnswer {
+  id         String    @id @default(uuid())
+  userId     String
+  gameId     String
+  questionId String
+  optionId   String
+  createdAt  DateTime  @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game       Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  question   Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  option     Option    @relation(fields: [optionId], references: [id], onDelete: Cascade)
+}
+
+model PlayerRequest {
+  id        String         @id @default(uuid())
+  gameId    String
+  userId    String
+  status    RequestStatus  @default(PENDING)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  game      Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, userId])
+}
+
+enum GameStatus {
+  WAITING
+  STARTED
+  COMPLETED
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
